@@ -95,7 +95,7 @@ GET /newsletter/api/v1/news?page=1
       "published_at": "Timestamp em ISO",
       "date": "Data formatada em português"
     }
-    // ... até 30 itens por página
+    ...
   ]
 }
 ```
@@ -153,35 +153,9 @@ GET /newsletter/api/v1/new?id=45
 - **Como reportar bugs ou sugerir melhorias?**  
   Abra uma issue neste repositório.
 
-## Exemplos de Integração
-
-### Bash (cURL)
-
-```bash
-curl https://audibert.dev/newsletter/api/v1/latest
-```
-
-### JavaScript (fetch)
-
-```js
-fetch('https://audibert.dev/newsletter/api/v1/today')
-  .then(res => res.json())
-  .then(data => console.log(data));
-```
-
-### Python (requests)
-
-```python
-import requests
-resp = requests.get('https://audibert.dev/newsletter/api/v1/news?page=2')
-print(resp.json())
-```
-
 ---
 
 ## ⭐ Gostou? Contribua!
 
-- Compartilhe, sugira melhorias ou contribua com código/documentação!
+- Favorite, Compartilhe, sugira melhorias ou contribua com código/documentação!
 - [Siga o Filipe Deschamps](https://www.youtube.com/@FilipeDeschamps) para mais conteúdo tech.
-
----
