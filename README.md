@@ -26,12 +26,12 @@ Ideal para desenvolvedores, entusiastas de tecnologia e empresas que desejam con
 
 ## Documentação da API
 
-Base URL: `https://audibert.dev/newsletter/api/v1`
+Base URL: `https://newsletter.audibert.dev/api/v1`
 
 ### Retorna a notícia mais recente
 
 ```http
-GET /newsletter/api/v1/latest
+GET https://newsletter.audibert.dev/api/v1/latest
 ```
 
 **Exemplo de resposta:**
@@ -52,7 +52,7 @@ GET /newsletter/api/v1/latest
 ### Retorna todas as notícias do dia atual
 
 ```http
-GET /newsletter/api/v1/today
+GET https://newsletter.audibert.dev/api/v1/today
 ```
 
 **Exemplo de resposta:**
@@ -88,7 +88,7 @@ GET /newsletter/api/v1/today
 ### Retorna notícias paginadas
 
 ```http
-GET /newsletter/api/v1/news?page=1
+GET https://newsletter.audibert.dev/api/v1/news?page=1
 ```
 
 | Parâmetro | Tipo | Obrigatório | Descrição                    |
@@ -118,7 +118,7 @@ GET /newsletter/api/v1/news?page=1
 ### Retorna uma notícia específica por ID
 
 ```http
-GET /newsletter/api/v1/new?id=45
+GET https://newsletter.audibert.dev/api/v1/new?id=45
 ```
 
 | Parâmetro | Tipo | Obrigatório | Descrição              |
