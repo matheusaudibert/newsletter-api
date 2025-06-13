@@ -3,13 +3,13 @@
 </div>
 <p align="center">
   <a href="https://github.com/matheusaudibert/newsletter-api/stargazers">
-    <img src="https://img.shields.io/github/stars/matheusaudibert/newsletter-api?color=ecd767&logo=github&style=flat-square" alt="GitHub Stars">
+    <img src="https://img.shields.io/github/stars/matheusaudibert/newsletter-api?color=ecd767&logo=github&style=flat-square" alt="GitHub Stars" width="108px">
   </a>
   <a href="https://github.com/matheusaudibert/newsletter-api/fork">
-    <img src="https://img.shields.io/github/forks/matheusaudibert/newsletter-api?color=ecd767&logo=github&style=flat-square" alt="GitHub Forks">
+    <img src="https://img.shields.io/github/forks/matheusaudibert/newsletter-api?color=ecd767&logo=github&style=flat-square" alt="GitHub Forks" width="108px">
   </a>
   <a href="https://filipedeschamps.com.br/newsletter" target="_blank">
-    <img src="https://img.shields.io/badge/assinar%20newsletter-105.111%20leitores%20ativos-ecd767?style=flat-square&logo=gmail&logoColor=white&color=ecd767" alt="Assinar a Newsletter">
+    <img src="https://img.shields.io/badge/assinar%20newsletter-105.111%20leitores%20ativos-ecd767?style=flat-square&logo=gmail&logoColor=white&color=ecd767" alt="Assinar a Newsletter" width="400px">
   </a>
 </p>
 
