@@ -267,26 +267,36 @@ export async function fetchNewsByDate(
         ? convertLinksToMarkdown(content).trim()
         : "Conteúdo não disponível";
 
-      // Buscar URL da fonte original com múltiplas tentativas
+      // Buscar URL da fonte original com seletor específico para links externos
       let source_url = "";
 
-      // Primeira tentativa: primeiro link no artigo
-      const firstLink = $("article .prose a").first();
-      if (firstLink.length) {
-        source_url = firstLink.attr("href") || "";
+      // Primeira tentativa: buscar link externo específico com rel="nofollow"
+      const specificExternalLinks = $(
+        "a.prc-Link-Link-85e08[rel='nofollow'][href^='http']"
+      );
+      if (specificExternalLinks.length) {
+        source_url = specificExternalLinks.first().attr("href") || "";
       }
 
-      // Segunda tentativa: qualquer link no conteúdo markdown
+      // Se não encontrou com o seletor específico, tenta outras alternativas
       if (!source_url) {
-        const anyLink = $("article div[class*='markdown'] a").first();
+        const firstLink = $("article .prose a[href^='http']").first();
+        if (firstLink.length) {
+          source_url = firstLink.attr("href") || "";
+        }
+      }
+
+      if (!source_url) {
+        const anyLink = $(
+          "article div[class*='markdown'] a[href^='http']"
+        ).first();
         if (anyLink.length) {
           source_url = anyLink.attr("href") || "";
         }
       }
 
-      // Terceira tentativa: qualquer link no artigo
       if (!source_url) {
-        const articleLink = $("article a").first();
+        const articleLink = $("article a[href^='http']").first();
         if (articleLink.length) {
           source_url = articleLink.attr("href") || "";
         }
@@ -367,26 +377,36 @@ export async function fetchLatestNews(strategy = DEFAULT_STRATEGY) {
         ? convertLinksToMarkdown(content).trim()
         : "Conteúdo não disponível";
 
-      // Buscar URL da fonte original com múltiplas tentativas
+      // Buscar URL da fonte original com seletor específico para links externos
       let source_url = "";
 
-      // Primeira tentativa: primeiro link no artigo
-      const firstLink = $("article .prose a").first();
-      if (firstLink.length) {
-        source_url = firstLink.attr("href") || "";
+      // Primeira tentativa: buscar link externo específico com rel="nofollow"
+      const specificExternalLinks = $(
+        "a.prc-Link-Link-85e08[rel='nofollow'][href^='http']"
+      );
+      if (specificExternalLinks.length) {
+        source_url = specificExternalLinks.first().attr("href") || "";
       }
 
-      // Segunda tentativa: qualquer link no conteúdo markdown
+      // Se não encontrou com o seletor específico, tenta outras alternativas
       if (!source_url) {
-        const anyLink = $("article div[class*='markdown'] a").first();
+        const firstLink = $("article .prose a[href^='http']").first();
+        if (firstLink.length) {
+          source_url = firstLink.attr("href") || "";
+        }
+      }
+
+      if (!source_url) {
+        const anyLink = $(
+          "article div[class*='markdown'] a[href^='http']"
+        ).first();
         if (anyLink.length) {
           source_url = anyLink.attr("href") || "";
         }
       }
 
-      // Terceira tentativa: qualquer link no artigo
       if (!source_url) {
-        const articleLink = $("article a").first();
+        const articleLink = $("article a[href^='http']").first();
         if (articleLink.length) {
           source_url = articleLink.attr("href") || "";
         }
@@ -517,26 +537,36 @@ export async function fetchNewsById(id, strategy = DEFAULT_STRATEGY) {
           ? convertLinksToMarkdown(content).trim()
           : "Conteúdo não disponível";
 
-        // Buscar URL da fonte original com múltiplas tentativas
+        // Buscar URL da fonte original com seletor específico para links externos
         let source_url = "";
 
-        // Primeira tentativa: primeiro link no artigo
-        const firstLink = $("article .prose a").first();
-        if (firstLink.length) {
-          source_url = firstLink.attr("href") || "";
+        // Primeira tentativa: buscar link externo específico com rel="nofollow"
+        const specificExternalLinks = $(
+          "a.prc-Link-Link-85e08[rel='nofollow'][href^='http']"
+        );
+        if (specificExternalLinks.length) {
+          source_url = specificExternalLinks.first().attr("href") || "";
         }
 
-        // Segunda tentativa: qualquer link no conteúdo markdown
+        // Se não encontrou com o seletor específico, tenta outras alternativas
         if (!source_url) {
-          const anyLink = $("article div[class*='markdown'] a").first();
+          const firstLink = $("article .prose a[href^='http']").first();
+          if (firstLink.length) {
+            source_url = firstLink.attr("href") || "";
+          }
+        }
+
+        if (!source_url) {
+          const anyLink = $(
+            "article div[class*='markdown'] a[href^='http']"
+          ).first();
           if (anyLink.length) {
             source_url = anyLink.attr("href") || "";
           }
         }
 
-        // Terceira tentativa: qualquer link no artigo
         if (!source_url) {
-          const articleLink = $("article a").first();
+          const articleLink = $("article a[href^='http']").first();
           if (articleLink.length) {
             source_url = articleLink.attr("href") || "";
           }
