@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="media/logo.png" alt="Newsletter API Logo" width="500px"/>
+    <img src="media/logo.png" alt="Newsletter API Logo" width="800px"/>
 </div>
 <p align="center">
   <a href="https://github.com/matheusaudibert/newsletter-api/stargazers">
