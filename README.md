@@ -110,7 +110,7 @@ GET /newsletter/api/v1/news?page=1
       "published_at": "Timestamp em ISO",
       "date": "Data formatada em português"
     }
-    ...
+    // +29
   ]
 }
 ```
