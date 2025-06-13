@@ -46,10 +46,27 @@ export async function newHandler(req, res) {
       });
     }
 
-    // Adicionar campo 'date' formatado em português
+    // Extrair e reorganizar os campos na ordem desejada
+    const {
+      id: newsId,
+      slug,
+      title,
+      body,
+      source_url,
+      url,
+      published_at,
+    } = newsItem;
+
+    // Retornar os campos na ordem específica
     return res.json({
-      ...newsItem,
-      date: formatDatePtBr(newsItem.published_at),
+      id: newsId,
+      slug,
+      title,
+      body,
+      source_url,
+      url,
+      published_at,
+      date: formatDatePtBr(published_at),
     });
   } catch (error) {
     console.error("Erro na rota /new:", error);

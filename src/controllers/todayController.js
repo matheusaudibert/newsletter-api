@@ -26,11 +26,21 @@ export async function todayHandler(req, res) {
     // Buscar dados
     const data = await fetchNewsByDate(date);
 
-    // Adicionar campo 'date' formatado em português
-    const resultsWithDate = data.results.map((item) => ({
-      ...item,
-      date: formatDatePtBr(item.published_at),
-    }));
+    // Adicionar campo 'date' formatado em português, mantendo a ordem dos campos
+    const resultsWithDate = data.results.map((item) => {
+      const { id, slug, title, body, source_url, url, published_at } = item;
+
+      return {
+        id,
+        slug,
+        title,
+        body,
+        source_url,
+        url,
+        published_at,
+        date: formatDatePtBr(published_at),
+      };
+    });
 
     // Retornar resposta sem incluir a estratégia
     return res.json({

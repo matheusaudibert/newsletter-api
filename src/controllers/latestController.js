@@ -21,11 +21,21 @@ export async function latestHandler(req, res) {
 
     // Verificar se temos um resultado
     if (data.count > 0 && data.results && data.results.length > 0) {
-      const first = data.results[0];
-      // Adicionar campo 'date' formatado em português
+      const item = data.results[0];
+
+      // Extrair e reorganizar os campos na ordem desejada
+      const { id, slug, title, body, source_url, url, published_at } = item;
+
+      // Retornar os campos na ordem específica
       return res.json({
-        ...first,
-        date: formatDatePtBr(first.published_at),
+        id,
+        slug,
+        title,
+        body,
+        source_url,
+        url,
+        published_at,
+        date: formatDatePtBr(published_at),
       });
     } else {
       // Caso não haja resultados

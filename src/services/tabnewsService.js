@@ -3,18 +3,52 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
-import {
-  BASE_URL,
-  USERNAME,
-  REQUEST_DELAY_MS,
-  CONCURRENCY,
-  DEFAULT_STRATEGY,
-} from "../config.js";
-import { isSameDayISO, parseDateParams } from "../utils/dateUtils.js";
+import { isSameDayISO } from "../utils/dateUtils.js";
 import { convertLinksToMarkdown } from "../utils/htmlUtils.js";
+
+// Configurações do scraping
+const BASE_URL = "https://www.tabnews.com.br";
+const USERNAME = "NewsletterOficial";
+const DEFAULT_STRATEGY = "new";
+const CONCURRENCY = 3; // Número de requisições paralelas
 
 function sleep(ms) {
   return new Promise((res) => setTimeout(res, ms));
+}
+
+/**
+ * Obtém o número total de postagens do TabNews
+ * @returns {Promise<number>} - Número total de postagens
+ */
+export async function getTotalPostsCount() {
+  try {
+    const url = `${BASE_URL}/${USERNAME}/conteudos/1`;
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+
+    // Busca o elemento que contém o contador total de posts
+    const counterElement = $(
+      "span.prc-CounterLabel-CounterLabel-ZwXPe"
+    ).first();
+    const countText = counterElement.text();
+
+    // Converte para número e garante que seja válido
+    const count = parseInt(countText, 10);
+    return isNaN(count) ? 0 : count;
+  } catch (error) {
+    console.error("Erro ao obter contagem total de posts:", error.message);
+    return 0;
+  }
+}
+
+/**
+ * Calcula o ID baseado no número total de posts
+ * @param {number} totalPosts - Número total de posts
+ * @param {number} index - Índice do item na lista (0-based)
+ * @returns {number} - ID calculado
+ */
+export function calculatePostId(totalPosts, index) {
+  return Math.max(0, totalPosts - 1 - index);
 }
 
 /**
@@ -37,9 +71,9 @@ async function scrapePage(pageNum, strategy = DEFAULT_STRATEGY) {
 
     if (title && href && published_at) {
       results.push({
-        title,
         slug: href.split("/").pop(),
-        url: `${BASE_URL}${href}`,
+        title,
+        url: BASE_URL + href,
         published_at,
       });
     }
@@ -55,7 +89,7 @@ async function discoverLastPage() {
   try {
     // Permitir redirecionamentos e extrair a URL final
     const res = await axios.get(`${BASE_URL}/${USERNAME}/conteudos/9999`, {
-      maxRedirects: 5, // Permitir redirecionamentos
+      maxRedirects: 5,
     });
 
     // Obter o número da página a partir da URL final
@@ -74,6 +108,7 @@ async function discoverLastPage() {
 export async function fetchAllNews(strategy = DEFAULT_STRATEGY) {
   const lastPage = await discoverLastPage();
   const pages = Array.from({ length: lastPage }, (_, i) => i + 1);
+  const totalPosts = await getTotalPostsCount();
 
   const allNews = [];
 
@@ -88,7 +123,7 @@ export async function fetchAllNews(strategy = DEFAULT_STRATEGY) {
   allNews.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
   return allNews.map((item, idx) => ({
-    id: idx,
+    id: calculatePostId(totalPosts, idx),
     slug: item.slug,
     title: item.title,
     url: item.url,
@@ -101,11 +136,12 @@ export async function fetchAllNews(strategy = DEFAULT_STRATEGY) {
  */
 async function fetchPageOneNews(strategy = DEFAULT_STRATEGY) {
   const pageOne = await scrapePage(1, strategy);
+  const totalPosts = await getTotalPostsCount();
 
   return pageOne
     .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
     .map((item, idx) => ({
-      id: idx,
+      id: calculatePostId(totalPosts, idx),
       slug: item.slug,
       title: item.title,
       url: item.url,
@@ -136,15 +172,18 @@ export async function fetchNewsByPage(
     // Buscar conteúdo da página
     const pageResults = await scrapePage(page, strategy);
 
-    // Mapear resultados com IDs calculados
-    // Assumimos 30 itens por página em média
-    const baseId = (page - 1) * 30;
+    // Buscar o número total de posts
+    const totalPosts = await getTotalPostsCount();
+
+    // Mapear resultados com IDs baseados no número total de posts
+    const postsPerPage = 30;
+    const startIndex = (page - 1) * postsPerPage;
 
     return {
-      page: page, // Retorna a página real que foi acessada
+      page: page,
       count: pageResults.length,
       results: pageResults.map((item, idx) => ({
-        id: baseId + idx,
+        id: calculatePostId(totalPosts, startIndex + idx),
         slug: item.slug,
         title: item.title,
         url: item.url,
@@ -154,7 +193,7 @@ export async function fetchNewsByPage(
   } catch (error) {
     console.error(`Erro ao buscar página ${pageNum}:`, error.message);
     return {
-      page: 1, // Em caso de erro, retornamos página 1
+      page: 1,
       count: 0,
       results: [],
     };
@@ -177,6 +216,7 @@ export async function fetchNewsByDate(
     : DEFAULT_STRATEGY;
 
   const pageOneNews = await fetchPageOneNews(validStrategy);
+  const totalPosts = await getTotalPostsCount();
 
   const filtered = pageOneNews.filter((item) =>
     isSameDayISO(item.published_at, date)
@@ -198,14 +238,63 @@ export async function fetchNewsByDate(
 
   for (const [index, item] of sortedFiltered.entries()) {
     try {
-      const res = await axios.get(item.url);
-      const $ = cheerio.load(res.data);
-      const rawBodyHtml = $(".markdown-body").first().html() || "";
-      const body = convertLinksToMarkdown(rawBodyHtml);
-      const source_url = $("a[rel=nofollow]").attr("href") || "";
+      // Extrair conteúdo completo da notícia
+      const url = item.url;
+      const { data } = await axios.get(url);
+      const $ = cheerio.load(data);
 
+      // Seletores atualizados para extrair conteúdo
+      // Buscar o conteúdo principal - tenta múltiplos seletores possíveis
+      let content = "";
+      // Tenta primeiro o seletor principal
+      content = $("article .prose").html();
+
+      // Se não encontrou, tenta seletores alternativos
+      if (!content) {
+        content = $("article div[class*='markdown']").html();
+      }
+
+      if (!content) {
+        content = $("article div[class*='content']").html();
+      }
+
+      // Último recurso: pegar todo o conteúdo do artigo
+      if (!content) {
+        content = $("article").html();
+      }
+
+      const body = content
+        ? convertLinksToMarkdown(content).trim()
+        : "Conteúdo não disponível";
+
+      // Buscar URL da fonte original com múltiplas tentativas
+      let source_url = "";
+
+      // Primeira tentativa: primeiro link no artigo
+      const firstLink = $("article .prose a").first();
+      if (firstLink.length) {
+        source_url = firstLink.attr("href") || "";
+      }
+
+      // Segunda tentativa: qualquer link no conteúdo markdown
+      if (!source_url) {
+        const anyLink = $("article div[class*='markdown'] a").first();
+        if (anyLink.length) {
+          source_url = anyLink.attr("href") || "";
+        }
+      }
+
+      // Terceira tentativa: qualquer link no artigo
+      if (!source_url) {
+        const articleLink = $("article a").first();
+        if (articleLink.length) {
+          source_url = articleLink.attr("href") || "";
+        }
+      }
+
+      // Adicionar à lista
       results.push({
-        id: index,
+        id: calculatePostId(totalPosts, index),
         slug: item.slug,
         title: item.title,
         body,
@@ -214,11 +303,10 @@ export async function fetchNewsByDate(
         published_at: new Date(item.published_at).toISOString(),
       });
 
-      if (index < sortedFiltered.length - 1) {
-        await sleep(REQUEST_DELAY_MS); // espera só entre múltiplos
-      }
+      // Pausa entre requisições
+      await sleep(100);
     } catch (err) {
-      console.error(`Erro ao processar ${item.url}:`, err.message);
+      console.error(`Erro ao processar item ${item.slug}:`, err.message);
     }
   }
 
@@ -236,6 +324,7 @@ export async function fetchLatestNews(strategy = DEFAULT_STRATEGY) {
   try {
     // Busca apenas a página 1 onde está a notícia mais recente
     const pageOneNews = await fetchPageOneNews(strategy);
+    const totalPosts = await getTotalPostsCount();
 
     // Se não houver notícias, retorne array vazio
     if (pageOneNews.length === 0) {
@@ -249,19 +338,66 @@ export async function fetchLatestNews(strategy = DEFAULT_STRATEGY) {
     const latestNews = pageOneNews[0];
 
     try {
-      // Buscar conteúdo detalhado da notícia mais recente
-      const res = await axios.get(latestNews.url);
-      const $ = cheerio.load(res.data);
-      const rawBodyHtml = $(".markdown-body").first().html() || "";
-      const body = convertLinksToMarkdown(rawBodyHtml);
-      const source_url = $("a[rel=nofollow]").attr("href") || "";
+      // Extrair conteúdo completo da última notícia
+      const url = latestNews.url;
+      const { data } = await axios.get(url);
+      const $ = cheerio.load(data);
+
+      // Seletores atualizados para extrair conteúdo
+      // Buscar o conteúdo principal - tenta múltiplos seletores possíveis
+      let content = "";
+      // Tenta primeiro o seletor principal
+      content = $("article .prose").html();
+
+      // Se não encontrou, tenta seletores alternativos
+      if (!content) {
+        content = $("article div[class*='markdown']").html();
+      }
+
+      if (!content) {
+        content = $("article div[class*='content']").html();
+      }
+
+      // Último recurso: pegar todo o conteúdo do artigo
+      if (!content) {
+        content = $("article").html();
+      }
+
+      const body = content
+        ? convertLinksToMarkdown(content).trim()
+        : "Conteúdo não disponível";
+
+      // Buscar URL da fonte original com múltiplas tentativas
+      let source_url = "";
+
+      // Primeira tentativa: primeiro link no artigo
+      const firstLink = $("article .prose a").first();
+      if (firstLink.length) {
+        source_url = firstLink.attr("href") || "";
+      }
+
+      // Segunda tentativa: qualquer link no conteúdo markdown
+      if (!source_url) {
+        const anyLink = $("article div[class*='markdown'] a").first();
+        if (anyLink.length) {
+          source_url = anyLink.attr("href") || "";
+        }
+      }
+
+      // Terceira tentativa: qualquer link no artigo
+      if (!source_url) {
+        const articleLink = $("article a").first();
+        if (articleLink.length) {
+          source_url = articleLink.attr("href") || "";
+        }
+      }
 
       // Retorna detalhes completos apenas da notícia mais recente
       return {
         count: 1,
         results: [
           {
-            id: 0,
+            id: totalPosts - 1, // Mais recente é o último ID
             slug: latestNews.slug,
             title: latestNews.title,
             body,
@@ -273,13 +409,13 @@ export async function fetchLatestNews(strategy = DEFAULT_STRATEGY) {
       };
     } catch (err) {
       console.error(
-        `Erro ao processar detalhes da notícia mais recente:`,
+        `Erro ao processar conteúdo da notícia ${latestNews.slug}:`,
         err.message
       );
-      // Se falhar ao buscar detalhes, retorna informações básicas
       return {
         count: 1,
         results: [latestNews],
+        error: "Falha ao processar conteúdo completo",
       };
     }
   } catch (error) {
@@ -295,11 +431,13 @@ export async function fetchLatestNews(strategy = DEFAULT_STRATEGY) {
 /**
  * Estima em qual página um ID específico deve estar
  * @param {number} id - ID do post
+ * @param {number} totalPosts - Número total de posts
  * @returns {number} - Número estimado da página
  */
-export function estimatePageForId(id) {
-  // Assumimos 30 itens por página em média
-  return Math.floor(id / 30) + 1;
+export function estimatePageForId(id, totalPosts) {
+  const postsPerPage = 30;
+  // Calcula em qual página o ID deve estar considerando o total de posts
+  return Math.floor((totalPosts - 1 - id) / postsPerPage) + 1;
 }
 
 /**
@@ -310,9 +448,16 @@ export function estimatePageForId(id) {
  */
 export async function fetchNewsById(id, strategy = DEFAULT_STRATEGY) {
   try {
-    // Estima a página onde o ID deve estar
-    const estimatedPage = estimatePageForId(id);
+    const totalPosts = await getTotalPostsCount();
     const targetId = parseInt(id);
+
+    // Verifica se o ID está dentro do intervalo válido
+    if (targetId < 0 || targetId >= totalPosts) {
+      return null;
+    }
+
+    // Estima a página onde o ID deve estar
+    const estimatedPage = estimatePageForId(targetId, totalPosts);
 
     // Buscar a página estimada
     const { results } = await fetchNewsByPage(estimatedPage, strategy);
@@ -322,7 +467,7 @@ export async function fetchNewsById(id, strategy = DEFAULT_STRATEGY) {
 
     // Se não encontrou, tenta nas páginas adjacentes
     if (!newsItem) {
-      // Tentar a página anterior
+      // Tenta na página anterior
       if (estimatedPage > 1) {
         const { results: prevResults } = await fetchNewsByPage(
           estimatedPage - 1,
@@ -331,7 +476,7 @@ export async function fetchNewsById(id, strategy = DEFAULT_STRATEGY) {
         newsItem = prevResults.find((item) => item.id === targetId);
       }
 
-      // Se ainda não encontrou, tenta a próxima página
+      // Se ainda não encontrou, tenta na próxima página
       if (!newsItem) {
         const { results: nextResults } = await fetchNewsByPage(
           estimatedPage + 1,
@@ -344,24 +489,71 @@ export async function fetchNewsById(id, strategy = DEFAULT_STRATEGY) {
     // Se encontrou o item, busca os detalhes completos
     if (newsItem) {
       try {
-        const res = await axios.get(newsItem.url);
-        const $ = cheerio.load(res.data);
-        const rawBodyHtml = $(".markdown-body").first().html() || "";
-        const body = convertLinksToMarkdown(rawBodyHtml);
-        const source_url = $("a[rel=nofollow]").attr("href") || "";
+        const url = newsItem.url;
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
+
+        // Seletores atualizados para extrair conteúdo
+        // Buscar o conteúdo principal - tenta múltiplos seletores possíveis
+        let content = "";
+        // Tenta primeiro o seletor principal
+        content = $("article .prose").html();
+
+        // Se não encontrou, tenta seletores alternativos
+        if (!content) {
+          content = $("article div[class*='markdown']").html();
+        }
+
+        if (!content) {
+          content = $("article div[class*='content']").html();
+        }
+
+        // Último recurso: pegar todo o conteúdo do artigo
+        if (!content) {
+          content = $("article").html();
+        }
+
+        const body = content
+          ? convertLinksToMarkdown(content).trim()
+          : "Conteúdo não disponível";
+
+        // Buscar URL da fonte original com múltiplas tentativas
+        let source_url = "";
+
+        // Primeira tentativa: primeiro link no artigo
+        const firstLink = $("article .prose a").first();
+        if (firstLink.length) {
+          source_url = firstLink.attr("href") || "";
+        }
+
+        // Segunda tentativa: qualquer link no conteúdo markdown
+        if (!source_url) {
+          const anyLink = $("article div[class*='markdown'] a").first();
+          if (anyLink.length) {
+            source_url = anyLink.attr("href") || "";
+          }
+        }
+
+        // Terceira tentativa: qualquer link no artigo
+        if (!source_url) {
+          const articleLink = $("article a").first();
+          if (articleLink.length) {
+            source_url = articleLink.attr("href") || "";
+          }
+        }
 
         return {
-          id: newsItem.id,
-          slug: newsItem.slug,
-          title: newsItem.title,
+          ...newsItem,
           body,
           source_url,
-          url: newsItem.url,
           published_at: new Date(newsItem.published_at).toISOString(),
         };
       } catch (err) {
-        console.error(`Erro ao buscar detalhes para ID ${id}:`, err.message);
-        return newsItem; // Retorna sem detalhes em caso de erro
+        console.error(
+          `Erro ao processar conteúdo da notícia ${newsItem.slug}:`,
+          err.message
+        );
+        return newsItem;
       }
     }
 
