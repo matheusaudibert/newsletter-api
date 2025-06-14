@@ -8,7 +8,7 @@ import routes from "./routes/index.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Permitir CORS para todos os domínios (ou especifique apenas o necessário)
+// Permitir CORS para todos os domínios
 app.use(cors());
 
 app.use(express.json());
