@@ -9,7 +9,7 @@
     <img src="https://img.shields.io/github/forks/matheusaudibert/newsletter-api?color=ecd767&logo=github&style=flat-square" alt="GitHub Forks" width="108px">
   </a>
   <a href="https://filipedeschamps.com.br/newsletter" target="_blank">
-    <img src="https://img.shields.io/badge/assinar%20newsletter-105.111%20leitores%20ativos-ecd767?style=flat-square&logo=gmail&logoColor=white&color=ecd767" alt="Assinar a Newsletter" width="400px">
+    <img src="https://img.shields.io/badge/assinar%20newsletter-105.110%20leitores%20ativos-ecd767?style=flat-square&logo=gmail&logoColor=white&color=ecd767" alt="Assinar a Newsletter" width="400px">
   </a>
 </p>
 
@@ -40,7 +40,7 @@ GET https://newsletter.audibert.dev/api/v1/latest
 {
   "id": 0,
   "slug": "slug-de-uma-noticia",
-  "title": "Títutlo de uma notícia",
+  "title": "Título de uma notícia",
   "body": "Corpo da notícia",
   "source_url": "https://www.link-da-fonte.com",
   "url": "https://www.tabnews.com.br/NewsletterOficial/slug",
@@ -64,7 +64,7 @@ GET https://newsletter.audibert.dev/api/v1/today
     {
       "id": 0,
       "slug": "slug-de-uma-noticia",
-      "title": "Títutlo de uma notícia",
+      "title": "Título de uma notícia",
       "body": "Corpo da notícia",
       "source_url": "https://www.link-da-fonte.com",
       "url": "https://www.tabnews.com.br/NewsletterOficial/slug",
@@ -74,7 +74,7 @@ GET https://newsletter.audibert.dev/api/v1/today
     {
       "id": 1,
       "slug": "slug-de-uma-noticia",
-      "title": "Títutlo de uma notícia",
+      "title": "Título de uma notícia",
       "body": "Corpo da notícia",
       "source_url": "https://www.link-da-fonte.com",
       "url": "https://www.tabnews.com.br/NewsletterOficial/slug",
@@ -105,7 +105,7 @@ GET https://newsletter.audibert.dev/api/v1/news?page=1
     {
       "id": 0,
       "slug": "slug-de-uma-noticia",
-      "title": "Títutlo de uma notícia",
+      "title": "Título de uma notícia",
       "url": "https://www.tabnews.com.br/NewsletterOficial/slug",
       "published_at": "Timestamp em ISO",
       "date": "Data formatada em português"
@@ -131,7 +131,7 @@ GET https://newsletter.audibert.dev/api/v1/new?id=45
 {
   "id": 0,
   "slug": "slug-de-uma-noticia",
-  "title": "Títutlo de uma notícia",
+  "title": "Título de uma notícia",
   "body": "Corpo da notícia",
   "source_url": "https://www.link-da-fonte.com",
   "url": "https://www.tabnews.com.br/NewsletterOficial/slug",
