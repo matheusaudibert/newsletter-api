@@ -22,7 +22,7 @@ jobs:
         run: npm install axios cheerio
 
       - name: Run update script
-        run: node src/script/script.js
+        run: node api/script/script.js
 
       - name: Commit and push changes
         run: |
