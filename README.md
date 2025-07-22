@@ -9,7 +9,7 @@
     <img src="https://img.shields.io/github/forks/matheusaudibert/newsletter-api?color=ecd767&logo=github&style=flat-square" alt="GitHub Forks" width="108px">
   </a>
   <a href="https://filipedeschamps.com.br/newsletter" target="_blank">
-    <img src="https://img.shields.io/badge/assinar%20newsletter-104.678%20leitores%20ativos-ecd767?style=flat-square&logo=gmail&logoColor=white&color=ecd767" alt="Assinar a Newsletter" width="400px">
+    <img src="https://img.shields.io/badge/assinar%20newsletter-104.655%20leitores%20ativos-ecd767?style=flat-square&logo=gmail&logoColor=white&color=ecd767" alt="Assinar a Newsletter" width="400px">
   </a>
 </p>
 
