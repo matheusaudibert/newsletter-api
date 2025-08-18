@@ -2,6 +2,9 @@
 > Este projeto foi descontinuado porque o serviço do [TabNews](https://github.com/filipedeschamps/tabnews.com.br) foi atualizado e não é mais permitido realizar raspagem das páginas.  
 > Houve tentativa de contato com o [Felipe Deschamps](https://github.com/filipedeschamps/tabnews.com.br) para buscar uma solução, mas sem sucesso.
 
+> [!NOTE]
+> O [Bot de notícias para o Discord](https://github.com/matheusaudibert/newsletter-bot) ainda está disponível!
+
 <div align="center">
     <img src="media/logo.png" alt="Newsletter API Logo" width="800px"/>
 </div>
